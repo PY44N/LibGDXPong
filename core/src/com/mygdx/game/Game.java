@@ -3,80 +3,99 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.mygdx.game.util.AABB;
 
 public class Game extends ApplicationAdapter {
-	public static Renderer renderer;
+	private ShapeRenderer shapeRenderer;
+	private SpriteBatch spriteBatch;
+	private BitmapFont font;
 
-	public Entity player;
-	public Entity enemy;
-	public Entity ball;
-
+	public int ballX = 300;
+	public int ballY = 220;
 	public int ballXVel = -3;
 	public int ballYVel = -3;
+
+	public int playerX = 10;
+	public int playerY = 165;
+	public int enemyX = 600;
+	public int enemyY = 165;
 
 	public int playerScore = 0;
 	public int enemyScore = 0;
 
 	@Override
 	public void create () {
-		renderer = new Renderer();
+		shapeRenderer = new ShapeRenderer();
+		spriteBatch = new SpriteBatch();
+		font = new BitmapFont();
 
-		player = new Entity(10, 165, 30, 150);
-		enemy = new Entity(600, 165, 30, 150);
-		ball = new Entity(300, 220, 40, 40);
+		font.getData().setScale(5f);
+	}
+
+	private boolean isColliding(int entity1X, int entity1Y, int entity1Width, int entity1Height, int entity2X, int entity2Y, int entity2Width, int entity2Height) {
+		return entity1X < entity2X + entity2Width && entity1X + entity1Width > entity2X && entity1Y < entity2Y + entity2Height && entity1Y + entity1Height > entity2Y;
 	}
 
 	@Override
 	public void render () {
 		ScreenUtils.clear(0, 0, 0, 1);
 
-		if (AABB.isColliding(player, ball)) {
+		if (isColliding(playerX, playerY, 30, 150, ballX, ballY, 40, 40)) {
 			ballXVel = 3;
 		}
-		if (AABB.isColliding(enemy, ball)) {
+		if (isColliding(enemyX, enemyY, 30, 150, ballX, ballY, 40, 40)) {
 			ballXVel = -3;
 		}
-		if (ball.y > 440) {
+		if (ballY > 440) {
 			ballYVel = -3;
 		}
-		if (ball.y < 0) {
+		if (ballY < 0) {
 			ballYVel = 3;
 		}
-		if (ball.x > 660) {
+		if (ballX > 660) {
 			playerScore++;
-			ball.resetPos();
+			ballX = 300;
+			ballY = 220;
 		}
-		if (ball.x < -20) {
+		if (ballX < -20) {
 			enemyScore++;
-			ball.resetPos();
+			ballX = 300;
+			ballY = 220;
 		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-			player.y += 3;
+			playerY += 3;
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-			player.y -= 3;
+			playerY -= 3;
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-			enemy.y += 3;
+			enemyY += 3;
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-			enemy.y -= 3;
+			enemyY -= 3;
 		}
-		ball.x += ballXVel;
-		ball.y += ballYVel;
+		ballX += ballXVel;
+		ballY += ballYVel;
 
-		renderer.renderText(100, 400, String.valueOf(playerScore));
-		renderer.renderText(480, 400, String.valueOf(enemyScore));
-		player.render();
-		enemy.render();
-		ball.render();
+		spriteBatch.begin();
+		font.draw(spriteBatch, String.valueOf(playerScore), 100, 400);
+		font.draw(spriteBatch, String.valueOf(enemyScore), 480, 400);
+		spriteBatch.end();
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.rect(ballX, ballY, 40, 40);
+		shapeRenderer.rect(playerX, playerY, 30, 150);
+		shapeRenderer.rect(enemyX, enemyY, 30, 150);
+		shapeRenderer.end();
 	}
 	
 	@Override
 	public void dispose () {
-		renderer.dispose();
+		shapeRenderer.dispose();
+		spriteBatch.dispose();
+		font.dispose();
 	}
 }
